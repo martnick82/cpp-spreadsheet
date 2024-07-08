@@ -3,14 +3,12 @@
 #include "common.h"
 #include "formula.h"
 
-#include <functional>
-#include <unordered_set>
-
-class Sheet;
+#include <optional>
 
 class Cell : public CellInterface {
 public:
-    Cell(Sheet& sheet);
+    explicit Cell(SheetInterface& sheet);
+    Cell(SheetInterface& sheet, std::string text);
     ~Cell();
 
     void Set(std::string text);
@@ -19,18 +17,15 @@ public:
     Value GetValue() const override;
     std::string GetText() const override;
     std::vector<Position> GetReferencedCells() const override;
-
     bool IsReferenced() const;
 
 private:
     class Impl;
-    class EmptyImpl;
     class TextImpl;
+    class EmptyImpl;
     class FormulaImpl;
-
+    
     std::unique_ptr<Impl> impl_;
-
-    // Добавьте поля и методы для связи с таблицей, проверки циклических 
-    // зависимостей, графа зависимостей и т. д.
-
+    std::string text_value_;
+    SheetInterface& sheet_;
 };

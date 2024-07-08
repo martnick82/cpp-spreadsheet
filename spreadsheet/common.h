@@ -7,6 +7,7 @@
 #include <string_view>
 #include <variant>
 #include <vector>
+#include <unordered_map>
 
 // Позиция ячейки. Индексация с нуля.
 struct Position {
@@ -32,17 +33,18 @@ struct Size {
 
     bool operator==(Size rhs) const;
 };
-
+using namespace std::string_literals;
 // Описывает ошибки, которые могут возникнуть при вычислении формулы.
 class FormulaError {
 public:
     enum class Category {
         Ref,    // ссылка на ячейку с некорректной позицией
         Value,  // ячейка не может быть трактована как число
-        Div0,  // в результате вычисления возникло деление на ноль
+        Arithmetic,  // некорректная арифметическая операция
     };
 
-    FormulaError(Category category);
+    FormulaError(Category category)
+        : category_(category){}
 
     Category GetCategory() const;
 
@@ -51,8 +53,10 @@ public:
     std::string_view ToString() const;
 
 private:
-    Category category_;
+    Category category_;   
+    static const std::unordered_map<Category, std::string> string_category_;
 };
+
 
 std::ostream& operator<<(std::ostream& output, FormulaError fe);
 
@@ -143,6 +147,11 @@ public:
     // соответственно. Пустая ячейка представляется пустой строкой в любом случае.
     virtual void PrintValues(std::ostream& output) const = 0;
     virtual void PrintTexts(std::ostream& output) const = 0;
+};
+
+struct PositionHasher
+{
+    size_t operator()(const Position key) const;
 };
 
 // Создаёт готовую к работе пустую таблицу.
